@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub User Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ebef 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+        }
+
+        .year-badge {
+            background: #2d3748;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .search-section {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #ed8a63;
+            box-shadow: 0 0 0 3px rgba(237, 138, 99, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #ed8a63 0%, #e17055 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(237, 138, 99, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #ed8a63;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .profile-section {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .profile-section.active {
+            display: block;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 30px;
+            align-items: start;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            border: 4px solid #ed8a63;
+        }
+
+        .profile-info h2 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .profile-info .username {
+            color: #718096;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .profile-bio {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .profile-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s;
+        }
+
+        .dashboard.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #fef5f1 0%, #fce8df 100%);
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ed8a63;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .analysis-section {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .analysis-section.active {
+            display: block;
+        }
+
+        .analysis-content {
+            background: linear-gradient(135deg, #fef5f1 0%, #fce8df 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #ed8a63;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .repo-list {
+            display: grid;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .repo-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 3px solid #ed8a63;
+            transition: all 0.3s;
+        }
+
+        .repo-item:hover {
+            background: #fef5f1;
+            transform: translateX(5px);
+        }
+
+        .repo-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .repo-desc {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        .repo-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .repo-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .followers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .follower-item {
+            text-align: center;
+        }
+
+        .follower-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #ed8a63;
+            margin-bottom: 5px;
+        }
+
+        .follower-name {
+            font-size: 11px;
+            color: #4a5568;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ed8a63;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e17055;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GITHUB USER REPORT</h1>
+            <div class="year-badge">2024</div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="usernameInput" class="search-input" placeholder="Enter GitHub username...">
+                <button onclick="analyzeUser()" class="search-btn" id="searchBtn">Analyze Profile</button>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing GitHub profile...</p>
+        </div>
+
+        <div class="profile-section" id="profileSection">
+            <div class="profile-header">
+                <img id="profileAvatar" class="profile-avatar" src="" alt="Profile">
+                <div class="profile-info">
+                    <h2 id="profileName">Name</h2>
+                    <div class="username" id="profileUsername">@username</div>
+                    <div class="profile-bio" id="profileBio"></div>
+                    <div class="profile-details" id="profileDetails"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="card">
+                <div class="card-title">Profile Statistics</div>
+                <div class="stat-grid" id="statsGrid"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Repository Languages</div>
+                <div class="chart-container">
+                    <canvas id="languageChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Activity Overview</div>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Top Repositories</div>
+                <div class="repo-list" id="repoList"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Recent Followers</div>
+                <div class="followers-grid" id="followersGrid"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Engagement Metrics</div>
+                <div class="chart-container">
+                    <canvas id="engagementChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-section" id="analysisSection">
+            <div class="card-title">AI Analysis</div>
+            <div class="analysis-content" id="analysisContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        async function analyzeUser() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                showError('Please enter a GitHub username');
+                return;
+            }
+
+            hideError();
+            showLoading(true);
+            hideResults();
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                const result = await response.json();
+
+                if (result.error || result.data.error) {
+                    showError(result.error || result.data.error);
+                    showLoading(false);
+                    return;
+                }
+
+                displayResults(result);
+                showLoading(false);
+            } catch (error) {
+                showError('Failed to analyze profile: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        function displayResults(result) {
+            const data = result.data;
+            
+            // Profile section
+            document.getElementById('profileAvatar').src = data.profile.avatar_url;
+            document.getElementById('profileName').textContent = data.profile.name;
+            document.getElementById('profileUsername').textContent = '@' + data.profile.login;
+            document.getElementById('profileBio').textContent = data.profile.bio;
+            
+            // Profile details
+            const detailsHtml = `
+                <div class="detail-item">
+                    <span class="detail-label">Company</span>
+                    <span class="detail-value">${data.profile.company}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value">${data.profile.location}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Account Age</span>
+                    <span class="detail-value">${data.stats.account_age_days} days</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Repos/Year</span>
+                    <span class="detail-value">${data.stats.repos_per_year}</span>
+                </div>
+            `;
+            document.getElementById('profileDetails').innerHTML = detailsHtml;
+
+            // Stats grid
+            const statsHtml = `
+                <div class="stat-item">
+                    <div class="stat-value">${data.profile.followers}</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.profile.following}</div>
+                    <div class="stat-label">Following</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.profile.public_repos}</div>
+                    <div class="stat-label">Repositories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.repositories.total_stars}</div>
+                    <div class="stat-label">Total Stars</div>
+                </div>
+            `;
+            document.getElementById('statsGrid').innerHTML = statsHtml;
+
+            // Language chart
+            createLanguageChart(data.repositories.languages);
+
+            // Activity chart
+            createActivityChart(data);
+
+            // Engagement chart
+            createEngagementChart(data);
+
+            // Repositories
+            const reposHtml = data.repositories.top_repos.map(repo => `
+                <div class="repo-item">
+                    <div class="repo-name">${repo.name}</div>
+                    <div class="repo-desc">${repo.description}</div>
+                    <div class="repo-stats">
+                        <div class="repo-stat">⭐ ${repo.stars}</div>
+                        <div class="repo-stat">🔀 ${repo.forks}</div>
+                        <div class="repo-stat">💻 ${repo.language}</div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('repoList').innerHTML = reposHtml;
+
+            // Followers
+            const followersHtml = data.followers.slice(0, 12).map(follower => `
+                <div class="follower-item">
+                    <img src="${follower.avatar_url}" class="follower-avatar" alt="${follower.login}">
+                    <div class="follower-name">${follower.login}</div>
+                </div>
+            `).join('');
+            document.getElementById('followersGrid').innerHTML = followersHtml;
+
+            // Analysis
+            document.getElementById('analysisContent').innerHTML = result.analysis.replace(/\n/g, '<br>');
+
+            // Show results
+            document.getElementById('profileSection').classList.add('active');
+            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('analysisSection').classList.add('active');
+        }
+
+        function createLanguageChart(languages) {
+            const ctx = document.getElementById('languageChart').getContext('2d');
+            
+            if (charts.language) charts.language.destroy();
+
+            const sortedLanguages = Object.entries(languages)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            charts.language = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedLanguages.map(l => l[0]),
+                    datasets: [{
+                        data: sortedLanguages.map(l => l[1]),
+                        backgroundColor: [
+                            '#ed8a63',
+                            '#e17055',
+                            '#fdcb9e',
+                            '#f8b89a',
+                            '#faa687'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            if (charts.activity) charts.activity.destroy();
+
+            charts.activity = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Repos', 'Stars', 'Forks', 'Gists'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [
+                            data.profile.public_repos,
+                            data.repositories.total_stars,
+                            data.repositories.total_forks,
+                            data.profile.public_gists
+                        ],
+                        backgroundColor: ['#ed8a63', '#e17055', '#fdcb9e', '#f8b89a']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function createEngagementChart(data) {
+            const ctx = document.getElementById('engagementChart').getContext('2d');
+            
+            if (charts.engagement) charts.engagement.destroy();
+
+            const totalEngagement = data.profile.followers + data.profile.following;
+            const followerPercentage = totalEngagement > 0 ? (data.profile.followers / totalEngagement * 100).toFixed(1) : 0;
+            const followingPercentage = totalEngagement > 0 ? (data.profile.following / totalEngagement * 100).toFixed(1) : 0;
+
+            charts.engagement = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [`Followers (${followerPercentage}%)`, `Following (${followingPercentage}%)`],
+                    datasets: [{
+                        data: [data.profile.followers, data.profile.following],
+                        backgroundColor: ['#ed8a63', '#fdcb9e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+            document.getElementById('searchBtn').disabled = show;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('active');
+        }
+
+        function hideResults() {
+            document.getElementById('profileSection').classList.remove('active');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('analysisSection').classList.remove('active');
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeUser();
+            }
+        });
+    </script>
+</body>
+</html>
