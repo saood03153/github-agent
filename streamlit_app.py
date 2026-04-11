@@ -779,6 +779,25 @@ if st.session_state.analyzed and st.session_state.result:
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+            
+            # Show All Repositories button
+            if len(data['repositories']['top_repos']) > 5:
+                with st.expander(f"📂 View All {len(data['repositories']['top_repos'])} Repositories"):
+                    for repo in data['repositories']['top_repos']:
+                        repo_url = f"https://github.com/{username}/{repo['name']}"
+                        st.markdown(f"""
+                        <div style='background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #667eea;'>
+                            <div style='font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 5px;'>
+                                <a href='{repo_url}' target='_blank' style='text-decoration: none; color: #667eea;'>
+                                    🔗 {repo['name']}
+                                </a>
+                            </div>
+                            <div style='font-size: 13px; color: #64748b; margin-bottom: 8px;'>{repo['description'] if repo['description'] else 'No description'}</div>
+                            <div style='font-size: 12px; color: #94a3b8;'>
+                                ⭐ {repo['stars']} | 🔀 {repo['forks']} | 💻 {repo['language']}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
         
         st.markdown("---")
         
