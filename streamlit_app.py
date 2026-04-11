@@ -704,7 +704,7 @@ if st.session_state.analyzed and st.session_state.result:
                     plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(size=12, color='#1e293b', family='Inter')
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
             else:
                 st.info("No language data available")
         
@@ -736,7 +736,7 @@ if st.session_state.analyzed and st.session_state.result:
                 yaxis=dict(gridcolor='rgba(0,0,0,0.05)'),
                 xaxis=dict(showgrid=False)
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         
         st.markdown("---")
         
@@ -765,7 +765,7 @@ if st.session_state.analyzed and st.session_state.result:
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(size=12, color='#1e293b', family='Inter')
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         
         with col2:
             st.subheader("⭐ Top Repositories")
